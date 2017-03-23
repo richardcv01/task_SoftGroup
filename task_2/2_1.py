@@ -4,13 +4,13 @@ print(type(len))
 
 class PublicMeta(type):
 
-
     def __new__(Class, classname, superclasses, attributedict):
         new_dicattr = PublicMeta.rePrivat_Public(classname, attributedict)
         new_dicattr['do_things'] = PublicMeta.do_things
         new_dicattr['pretty_func'] = PublicMeta.pretty_func
         return type(classname, superclasses, new_dicattr)
 
+    # Function rePrivat_Public return new dict where updated name privad attributes to public
     @staticmethod
     def rePrivat_Public(classname, attributedict):
         str_privat = '_' + classname + '__'
