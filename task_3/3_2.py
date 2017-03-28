@@ -30,12 +30,6 @@ def json_load(file: object) -> str:
     return  stRes
 
 
-with open('json.txt', 'r') as file:
-    print( json_load(file))
-
-
-
-
 
 
 
@@ -50,7 +44,6 @@ class AbsConverterFabric(ABC):
 
 
 class AbstractConverter(ABC):
-
     @abstractmethod
     def load(self, file: object) -> str:
         raise NotImplemented
@@ -60,5 +53,35 @@ class AbstractConverter(ABC):
         raise NotImplemented
 
 
+class Converter(AbstractConverter):
+    def __init__(self, _from: str, _to: str):
+        self._from = _from
+        self._to = _to
+
+    def load(self, file: object) -> str:
+        StRes = ''
+        if self._from == 'csv':
+            StRes = csv_load(file)
+        elif self._from == 'json':
+            StRes = json_load(file)
+        return StRes
+
+    def save(self, s: str, file: object) -> object:
+        return file
+
+
 class ConverterFabric(AbsConverterFabric):
- '''Complete the code'''
+
+
+
+
+    def create_converter(self, _from: str, _to: str) -> object:
+        T = Converter(_from, _to)
+        return T
+
+
+fab = ConverterFabric()
+con1 = fab.create_converter('csv', 'json')
+
+with open('csv.txt', 'r') as file:
+    print(con1.load(file))
