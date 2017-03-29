@@ -59,31 +59,21 @@ class AbstractConverter(ABC):
 
 
 class ConverterFabric(AbsConverterFabric):
+    dict_load = {'csv': csv_load, 'json':json_load}
+    dict_save = {'csv': csv_save, 'json':json_save}
     class Converter(AbstractConverter):
-        def __init__(self, _from: str, _to: str):
-            self._from = _from
-            self._to = _to
-
-        def load(self, file: object) -> str:
-            StRes = ''
-            if self._from == 'csv':
-                StRes = csv_load(file)
-            elif self._from == 'json':
-                StRes = json_load(file)
-            return StRes
-
-        def save(self, s: str, file: object) -> object:
-            StRes = ''
-            self.s = s
-            if self._to == 'csv':
-                StRes = csv_save(self.s, file)
-            elif self._to == 'json':
-                StRes = json_save(self.s, file)
-            return StRes
+        pass
 
     def create_converter(self, _from: str, _to: str) -> object:
-        self.T = ConverterFabric.Converter(_from, _to)
-        return self.T
+        self._from = _from
+        self._to = _to
+        ConverterFabric.Converter = type('Converter', (),
+                                         {'load':ConverterFabric.dict_load[self._from]
+            , 'save':ConverterFabric.dict_save[self._to]})
+        obj = ConverterFabric.Converter
+        return obj
+
+
 
 if __name__ == '__main__':
 
