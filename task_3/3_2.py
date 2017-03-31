@@ -9,12 +9,10 @@ def csv_load(file: object) -> str:
     for row in reader:
         stRes += ' '.join(row) + '\n'
     stRes = stRes.rstrip('\n')
-    print(r'' + stRes)
     return stRes
 
 def csv_save(s: str, file: object) -> None:
     StRes = s.replace(' ', ';').replace("'", '"')
-    print(StRes)
     file.write(StRes)
 
 def json_load(file: object) -> str:
