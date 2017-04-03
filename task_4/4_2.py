@@ -6,6 +6,8 @@ import requests
 from lxml import html
 import threading
 import queue
+import time
+from multiprocessing.dummy import Pool as ThreadPool
 
 logging.basicConfig(level=logging.INFO)
 
@@ -39,44 +41,33 @@ class Scraper:
         self.session.headers.update(HEADERS)
 
     def start(self):
-        self.lis = []
         self.__prepare()
-        #url = self.get_link(3)
-        #self.notify(url)
-        #return self.crawl(url)
-        self.multi()
-        return self.lis
+        self.q = queue.Queue(2)
+        self.urls()
+        self.runs()
+        lis = []
+        for i in range(2):
+            res = self.q.get()
+            lis = lis + res
+            #self.notify(self.get_link(i))
+        #print(len(lis))
+        return lis
 
-    def pr(self):
-        while self.clientPool:
-            url = self.clientPool.get()
-            #
-            res = self.crawl(url)
-            self.notify(url)
-            print(res)
-        return res
+    def urls(self):
+        self.urls =  [self.get_link(i) for i in range(1, 6)]
 
-            #print(url)
+    def doWork(self, url):
+        res = self.crawl(url)
+        self.q.put(res)
+        #self.q.put(self.notify(url))
 
-
-
-    def multi(self):
-        self.clientPool = queue.Queue(0)
-
-        for j in range(1,5+1):
-            self.url = self.get_link(j)
-            self.clientPool.put(self.url)
-        for i in range(1, self.limit+1):
-            t = threading.Thread(target=self.pr)
+    def runs(self):
+        for i in range(2):
+            print(self.urls[i])
+            arr = str(self.urls[i])
+            t = threading.Thread(target=self.doWork, args=(arr,))
             t.start()
-
-
-
-
-        #while self.ii:
-            #url = self.get_link(self.ii)
-            #self.clientPool.put(url)
-            #self.ii=self.ii-1
+            #self.LOCK.release()
 
 
     def get_link(self, page):
@@ -107,7 +98,7 @@ class Scraper:
 
 scrapper = Scraper('iphone', 1, 2, limit=2)
 results = scrapper.start()
-#scrapper.multi()
+#print(results)
 for result in results:
     offer, price = result
-    #print(offer, price)
+    print(offer, price)
