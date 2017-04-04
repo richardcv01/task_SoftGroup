@@ -49,10 +49,11 @@ class Scraper:
     def call_crawl(self, url):
         res = self.crawl(url)
         self.notify(url)
+        time.sleep(3) #затримка щоб бачити що потоки виконуються групами майже одночасно
         return res
 
     def run(self):
-        with ThreadPool(processes=self.limit) as pool:
+        with ThreadPool(self.limit) as pool:
            res =  pool.map(self.call_crawl, self.urls)
         return res
 
@@ -82,7 +83,7 @@ class Scraper:
 
             return items
 
-scrapper = Scraper('iphone', 3, 30, limit=5)
+scrapper = Scraper('iphone', 1, 30, limit=3)
 results = scrapper.start()
 for result in results:
     offer, price = result
