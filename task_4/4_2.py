@@ -7,10 +7,10 @@ from lxml import html
 import threading
 import queue
 import time
+import itertools
 from multiprocessing.dummy import Pool as ThreadPool
 
 logging.basicConfig(level=logging.INFO)
-
 
 class Scraper:
     def __init__(self, query, page_from, page_to, limit=2):
@@ -42,33 +42,19 @@ class Scraper:
 
     def start(self):
         self.__prepare()
-        self.q = queue.Queue(2)
-        self.urls()
-        self.runs()
-        lis = []
-        for i in range(2):
-            res = self.q.get()
-            lis = lis + res
-            #self.notify(self.get_link(i))
-        #print(len(lis))
-        return lis
+        self.urls = [self.get_link(i) for i in range(self.page_from, self.page_to)]
+        GetListRun = self.run()
+        return list(itertools.chain.from_iterable(GetListRun))
 
-    def urls(self):
-        self.urls =  [self.get_link(i) for i in range(1, 6)]
-
-    def doWork(self, url):
+    def call_crawl(self, url):
         res = self.crawl(url)
-        self.q.put(res)
-        #self.q.put(self.notify(url))
+        logging.info('Task done:' + url)
+        return res
 
-    def runs(self):
-        for i in range(2):
-            print(self.urls[i])
-            arr = str(self.urls[i])
-            t = threading.Thread(target=self.doWork, args=(arr,))
-            t.start()
-            #self.LOCK.release()
-
+    def run(self):
+        with ThreadPool(processes=self.limit) as pool:
+           res =  pool.map(self.call_crawl, self.urls)
+        return res
 
     def get_link(self, page):
         link = 'https://www.olx.ua/chernovtsy/q-{0}/?page={1}'.format(self.query, page)
@@ -96,9 +82,8 @@ class Scraper:
 
             return items
 
-scrapper = Scraper('iphone', 1, 2, limit=2)
+scrapper = Scraper('iphone', 3, 30, limit=5)
 results = scrapper.start()
-#print(results)
 for result in results:
     offer, price = result
     print(offer, price)
