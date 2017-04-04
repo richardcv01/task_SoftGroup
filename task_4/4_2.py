@@ -48,7 +48,7 @@ class Scraper:
 
     def call_crawl(self, url):
         res = self.crawl(url)
-        logging.info('Task done:' + url)
+        self.notify(url)
         return res
 
     def run(self):
