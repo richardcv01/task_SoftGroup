@@ -42,7 +42,7 @@ class Scraper:
 
     def start(self):
         self.__prepare()
-        self.semaphore = threading.BoundedSemaphore(2)
+        self.semaphore = threading.BoundedSemaphore(self.limit)
         self.urls = [self.get_link(i) for i in range(self.page_from, self.page_to)]
         self.GetListRun = []
         self.run()

@@ -61,19 +61,18 @@ class Scraper:
                 self.url = self.q.get_nowait()
             except queue.Empty:
                 break
-            self.call_crawl(self.url)  # передаем данные в нашу функцию
+            self.call_crawl(self.url)
             time.sleep(0.5)
-            self.q.task_done()  # задача завершена
-
+            self.q.task_done()
     def run(self):
         for i in range(self.page_from, self.page_to):
             self.url = self.get_link(i)
-            self.q.put(self.url)  # заносим данные в очередь
+            self.q.put(self.url)
         for i in range(self.limit):
-            t = threading.Thread(target=self.repeat)  # создаем нить
+            t = threading.Thread(target=self.repeat)
             t.start()  # стартуем
             time.sleep(0.5)
-        self.q.join()  # блокируем очередь до завершения
+        self.q.join()
         #return res
 
 
