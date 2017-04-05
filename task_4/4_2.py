@@ -83,7 +83,7 @@ class Scraper:
 
             return items
 
-scrapper = Scraper('iphone', 1, 30, limit=3)
+scrapper = Scraper('iphone', 1, 10, limit=3)
 results = scrapper.start()
 for result in results:
     offer, price = result
