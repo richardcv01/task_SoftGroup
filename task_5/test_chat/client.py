@@ -1,20 +1,23 @@
 import socket
-import time
+import threading
 
-host = "127.0.0.1"
-port = 8080
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect(('localhost', 1154))
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((host, port))
-print(s.recv(1024).decode('utf8'))
+def send_mes():
+    while True:
+       print("Щоб вийт нажміть 'exit':")
+       print("Введіть повідомлення")
+       data = input()
+       if (data != 'exit'):
+           client_socket.send(data.encode())
+           data = client_socket.recv(1024)
+           print(data.decode())
+       else:
+           client_socket.send(data.encode())
+           client_socket.close()
+           break
 
-while True:
-    buf = input()
-    s.send(buf.encode('utf8'))
-    result = s.recv(1024)
-    print('Ответ сервера: ', result.decode('utf8'))
-    if buf == "exit":
-        break
-s.close()
-
-time.sleep(10)
+tsend = threading.Thread(target=send_mes())
+tsend.start()
+tsend.join()
