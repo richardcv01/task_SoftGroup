@@ -49,11 +49,10 @@ class Scraper:
         return list(itertools.chain.from_iterable(self.GetListRun))
 
     def call_crawl(self, url):
-        self.semaphore.acquire()
+
         res = self.crawl(url)
         self.notify(url)
         self.GetListRun.append(res)
-        time.sleep(5) #затримка щоб бачити що потоки виконуються групами майже одночасно
         self.semaphore.release()
         #return res
 
@@ -62,6 +61,7 @@ class Scraper:
         for i in range(self.page_from, self.page_to):
             url = self.get_link(i)
             t = threading.Thread(target=self.call_crawl, args=(url,))
+            self.semaphore.acquire() # Виклик acquire семафора перед викликом старт потоку
             t.start()
         t.join()
         #return res
@@ -92,7 +92,7 @@ class Scraper:
 
             return items
 
-scrapper = Scraper('iphone', 1, 10, limit=3)
+scrapper = Scraper('iphone', 1, 10, limit=5)
 results = scrapper.start()
 for result in results:
     offer, price = result

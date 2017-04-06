@@ -4,11 +4,10 @@
 import logging
 import requests
 from lxml import html
-import threading
-import queue
 import time
 import itertools
-from multiprocessing.dummy import Pool as ThreadPool
+#from multiprocessing.dummy import Pool as ThreadPool
+from concurrent.futures import ThreadPoolExecutor as ThreadPool
 
 logging.basicConfig(level=logging.INFO)
 

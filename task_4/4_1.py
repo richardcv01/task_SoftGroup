@@ -13,7 +13,6 @@ def worker(file: object,  *args):
     :param file: file-object
     :return:
     """
-    global LOCK
     LOCK.acquire()
     file.write( args[0] +  ': ' + 'started.\n')
     time.sleep(random.random() * 5)
