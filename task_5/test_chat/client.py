@@ -13,12 +13,20 @@ def str_json_reg(name):
     StJson = St.replace(' ', ';').replace("'", '"')
     return StJson
 
+def str_json_mes(name, mes):
+    St = '{"name":"' + name + '","message":"'+ mes+'"}<end>'
+    StJson = St.replace(' ', ';').replace("'", '"')
+    return StJson
+
 data = str_json_reg(name)
 sock.send(data.encode())
 
 def send():
     while True:
-        data = input()
+        print('>')
+        mes = input()
+        print('mes=', mes)
+        print(str_json_mes(name, mes))
         sock.send(data.encode())
 
 def get():

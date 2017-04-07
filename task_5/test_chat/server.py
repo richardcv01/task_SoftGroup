@@ -17,12 +17,21 @@ print(''.join(['Server starter on ',host,':', str(port)]))
 running = True
 
 def clientthread(conn):
+    REGIS = False
     while True:
+
         #running
         print(str(conn))
-        buf = conn.recv(1024)
-        data = register(buf.decode())
-        conn.send(data.encode())
+        if REGIS == False:
+            buf = conn.recv(1024)
+            data = register(buf.decode())
+            conn.send(data.encode())
+            REGIS = True
+            print('false',REGIS)
+        else:
+            buf = conn.recv(1024)
+            conn.send(buf)
+            print(buf)
         if data[-5:] =='<end>':
             break
 
@@ -31,7 +40,7 @@ def register(jsonSt):
 
     if dictjson["name"] != '' and dictjson["message"] == '':
         if dictjson["name"] in LIST_NAME_USER:
-            return 'Name "' + dictjson["name"] + '" is alredy taken'
+            return 'Name "' + dictjson["name"] + '" is alredy taken. Choose another name'
         else:
             LIST_NAME_USER.append(dictjson["name"])
             return 'Welcome to chat, ' + dictjson["name"]
