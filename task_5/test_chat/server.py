@@ -19,7 +19,6 @@ running = True
 def clientthread(conn):
     REGIS = False
     while True:
-
         #running
         print(str(conn))
         if REGIS == False:
@@ -46,9 +45,6 @@ def register(jsonSt):
             return 'Welcome to chat, ' + dictjson["name"]
     elif dictjson["name"] == '' :
         return 'Need to introdusce yourself'
-
-
-
 
 while True:
     if running:
