@@ -1,23 +1,35 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import socket
 import threading
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('localhost', 1154))
+sock = socket.socket()
+sock.connect(('localhost', 9999))
+name = input('input ouyr name:')
 
-def send_mes():
+def str_json_reg(name):
+    St = '{"name":"' + name + '","message":""}<end>'
+    StJson = St.replace(' ', ';').replace("'", '"')
+    return StJson
+
+data = str_json_reg(name)
+sock.send(data.encode())
+
+def send():
     while True:
-       print("Щоб вийт нажміть 'exit':")
-       print("Введіть повідомлення")
-       data = input()
-       if (data != 'exit'):
-           client_socket.send(data.encode())
-           data = client_socket.recv(1024)
-           print(data.decode())
-       else:
-           client_socket.send(data.encode())
-           client_socket.close()
-           break
+        data = input()
+        sock.send(data.encode())
 
-tsend = threading.Thread(target=send_mes())
-tsend.start()
-tsend.join()
+def get():
+    while True:
+        data = sock.recv(1024)
+        #sock.close()
+        print(data.decode())
+
+
+
+t_send = threading.Thread(target=send)
+t_get = threading.Thread(target=get)
+t_send.start()
+t_get.start()

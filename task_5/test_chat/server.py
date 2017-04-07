@@ -1,45 +1,61 @@
 import socket
-import time
+from threading import Thread, current_thread
 import json
-import collections as col
-import threading
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(("localhost", 1154))
-server_socket.listen(5)
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-print("TCPServer Waiting 1154")
+host = 'localhost'
+port = 9999
+LIST_NAME_USER = []
 
+sock.bind((host, port))
+sock.listen(5)
 
+print("<server debug>")
+print(''.join(['Server starter on ',host,':', str(port)]))
 
-def json_to_str(json_dic):
-    dicOrd = json.load(json_dic, object_pairs_hook=col.OrderedDict)
-    listRes = dicOrd["rows"]
-    stRes = "\n".join(listRes)
-    return stRes
+running = True
 
-def get_con():
-    have_connect = 1
+def clientthread(conn):
     while True:
-        client_socket, address = server_socket.accept()
-        while have_connect:
-            data = client_socket.recv(1024)
-            data = data.decode()
-            print('від клієнта ', data)
-            if (data != 'Q' and data != 'q'):
-                print("Відповідь від ", address)
-                data = ('online: ' + time.asctime(time.localtime())+ '\n')
-                client_socket.send(data.encode())
-            else:
-               client_socket.close()
-               have_connect = 0
-               break
+        #running
+        print(str(conn))
+        buf = conn.recv(1024)
+        data = register(buf.decode())
+        conn.send(data.encode())
+        if data[-5:] =='<end>':
+            break
 
-def get_new():
-  while True:
+def register(jsonSt):
+    dictjson = json.loads(jsonSt[:-5], object_pairs_hook=dict)
+
+    if dictjson["name"] != '' and dictjson["message"] == '':
+        if dictjson["name"] in LIST_NAME_USER:
+            return 'Name "' + dictjson["name"] + '" is alredy taken'
+        else:
+            LIST_NAME_USER.append(dictjson["name"])
+            return 'Welcome to chat, ' + dictjson["name"]
+    elif dictjson["name"] == '' :
+        return 'Need to introdusce yourself'
 
 
-T1 = threading.Thread(target=get_con)
-#T2 = threading.Thread(target=get_con)
-#T1.start()
-T2.start()
+
+
+while True:
+    if running:
+        conn, addr = sock.accept()
+        print("client connected with address " + addr[0] + str(conn))
+        #conn.send(b"hello!")
+        ht = Thread(target=clientthread, args=(conn,))
+        ht.daemon = True
+        ht.start()
+        print(running)
+    else:
+        break
+
+
+
+
+
+conn.close()
+sock.close
