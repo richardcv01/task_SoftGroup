@@ -16,7 +16,15 @@ def str_json_reg(name):
     return StJson
 
 def str_json_mes(name, mes):
-    St = '{"name":"' + name + '","message":"'+ mes+'"}<end>'
+    if mes[:4] == 'user':
+
+        user = mes.split(sep=' ')[0][5:]
+        mes = mes[mes.index(' ', 0, -1):]
+        #print(mes)
+        St  = '{"name":"' + name + '","message":"'+ mes+'","to":"' + user +'"}<end>'
+        #print(St)
+    else:
+        St = '{"name":"' + name + '","message":"'+ mes+'"}<end>'
     StJson = St.replace("'", '"')
     return StJson
 
@@ -31,6 +39,7 @@ def json_name_mes(jsonSt):
 def send():
     while True:
         try:
+            maes = ''
             print('>>>', end ='')
             mes = input()
             #print('mes=', mes)
@@ -49,16 +58,19 @@ def get():
                 data_get = data_get +  sock.recv(10)
                 #print('data   ', data_get)
                 if data_get.decode()[-5:] == '<end>':
-                    #print(data_get)
+                    #print('data_get',data_get)
                     break
-                #print(data_get)
+
         #sock.close()
-            print('GET', data_get)
-            name, mes = json_name_mes(data_get.decode())
-            if name == mes == '':
+            #print('GET', data_get)
+            print('GEEEEET' ,data_get)
+            name, meseg = json_name_mes(data_get.decode())
+            if name == meseg == '':
                 pass
             else:
-                print(name, ':', mes)
+                print(name, ':', meseg)
+                #print('To send data Click Enter')
+
         except ConnectionResetError:
             close_program()
 
