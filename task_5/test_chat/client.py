@@ -4,9 +4,8 @@
 import socket
 import threading
 import json
-
-import msvcrt
-import sys
+import time
+import win32api
 
 sock = socket.socket()
 sock.connect(('localhost', 9999))
@@ -16,13 +15,10 @@ def str_json_reg(name):
     StJson = St.replace("'", '"')
     return StJson
 
-
-
 def str_json_mes(name, mes):
     St = '{"name":"' + name + '","message":"'+ mes+'"}<end>'
     StJson = St.replace("'", '"')
     return StJson
-
 
 def json_name_mes(jsonSt):
     try:
@@ -32,16 +28,17 @@ def json_name_mes(jsonSt):
         res  = '',''
     return res
 
-
-
 def send():
     while True:
-        print('>>>', end ='')
-        mes = input()
-        #print('mes=', mes)
-        #print(str_json_mes(name, mes))
-        data = str_json_mes(name, mes)
-        sock.send(data.encode())
+        try:
+            print('>>>', end ='')
+            mes = input()
+            #print('mes=', mes)
+            #print(str_json_mes(name, mes))
+            data = str_json_mes(name, mes)
+            sock.send(data.encode())
+        except ConnectionResetError:
+            close_program()
 
 def get():
     while True:
@@ -63,13 +60,7 @@ def get():
             else:
                 print(name, ':', mes)
         except ConnectionResetError:
-            print('Disconected from chatroom. Press <enter to exit>')
-            while True:
-                key = msvcrt.getch()  # Какая клавиша нажата?
-                print('ker', key)
-                if key == 13:  # если Enter:
-                    print(key)
-                    raise SystemExit
+            close_program()
 
 name = ''
 def register():
@@ -89,13 +80,17 @@ def register():
             else:
                 print(sername, ':', mes)
         except ConnectionResetError:
-            print('Disconected from chatroom. Press <enter to exit>')
-            while True:
-                key = msvcrt.getch()  # Какая клавиша нажата?
-                print('ker', key)
-                if key == 13:  # если Enter:
-                    print(key)
-                    raise SystemExit
+            close_program()
+
+def close_program():
+    while True:
+        input('Disconected from chatroom. Press <enter to exit>')
+        if win32api.GetAsyncKeyState(13):
+            print('program close..')
+            time.sleep(1)
+            print('...')
+            time.sleep(1)
+            raise SystemExit()
 
 
 register()
