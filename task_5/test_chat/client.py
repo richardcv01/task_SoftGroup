@@ -7,8 +7,11 @@ import json
 import time
 import win32api
 
-sock = socket.socket()
-sock.connect(('localhost', 9999))
+sock_set = socket.socket()
+sock_set.connect(('localhost', 9999))
+sock_get = socket.socket()
+sock_get.connect(('localhost', 9999))
+
 
 def str_json_reg(name):
     St = '{"name":"' + name + '","message":""}<end>'
@@ -39,13 +42,14 @@ def json_name_mes(jsonSt):
 def send():
     while True:
         try:
-            maes = ''
+            mes = ''
             print('>>>', end ='')
             mes = input()
             #print('mes=', mes)
             #print(str_json_mes(name, mes))
             data = str_json_mes(name, mes)
-            sock.send(data.encode())
+            sock_set.send(data.encode())
+            mes = ''
         except ConnectionResetError:
             close_program()
 
@@ -55,22 +59,15 @@ def get():
         try:
             data_get = b''
             while True:
-                data_get = data_get +  sock.recv(10)
-                #print('data   ', data_get)
+                data_get = data_get +  sock_get.recv(10)
                 if data_get.decode()[-5:] == '<end>':
-                    #print('data_get',data_get)
                     break
-
-        #sock.close()
-            #print('GET', data_get)
-            print('GEEEEET' ,data_get)
             name, meseg = json_name_mes(data_get.decode())
             if name == meseg == '':
                 pass
             else:
                 print(name, ':', meseg)
-                #print('To send data Click Enter')
-
+                    #print('To send data Click Enter')
         except ConnectionResetError:
             close_program()
 
@@ -82,8 +79,8 @@ def register():
             name = input('Input your name: ')
             #if name != '': break
             data = str_json_reg(name)
-            sock.send(data.encode())
-            data_get = sock.recv(1024)
+            sock_set.send(data.encode())
+            data_get = sock_get.recv(1024)
             sername, mes = json_name_mes(data_get.decode())
             if  mes == "Name <" + name + "> is alredy taken. Choose another name":
                 name = ''

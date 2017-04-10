@@ -20,56 +20,63 @@ class ClientThread(threading.Thread):
     LIST_THREDS = []
     sockets = {}
     user = {}
-    def __init__(self, conn, adrr):
+    def __init__(self, conn_get, conn_send, adrr):
         threading.Thread.__init__(self)
         self.daemon = True
-        self.conn = conn
+        self.conn_get = conn_get
+        self.conn_send = conn_send
         self.addr = adrr
         self.REGIS = False
 
     def run(self):
-        conn = self.conn
+        conn_get = self.conn_get
+        conn_send = self.conn_send
         while True:
             # running
             #print(self.REGIS, self.conn)
             if self.REGIS == False:
-                buf = b''
+                buf_get = b''
                 while True:
-                    buf = buf + conn.recv(10)
-                    if (buf.decode()[-5:]) == '<end>':
+                    buf_get = buf_get + conn_get.recv(10)
+                    if (buf_get.decode()[-5:]) == '<end>':
                         break
                 #buf = conn.recv(10)
-                data = self.register(buf.decode())
+                data = self.register(buf_get.decode())
                 mes = self.str_json_mes(data)
-                name, mess = self.json_name_mes(buf.decode())
-                conn.send(mes.encode())
+                name, mess = self.json_name_mes(buf_get.decode())
+                conn_send.send(mes.encode())
+
             else:
-                buf = b''
+                buf_get = b''
                 while True:
-                    buf = buf + conn.recv(10)
-                    if (buf.decode()[-5:]) == '<end>':
+                    buf_get = buf_get + conn_get.recv(10)
+                    if (buf_get.decode()[-5:]) == '<end>':
                         break
-                name, mes = self.json_name_mes(buf.decode())
-                conn.send(mes.encode())
+                #print("sdfsdf      ",buf_get)
+                name, mes = self.json_name_mes(buf_get.decode())
+                #conn_send.send(mes.encode())
+                #conn_send()
                 #if buf
-                dictjson = json.loads(buf.decode()[:-5], object_pairs_hook=dict)
+                #print('mes ', mes)
+                dictjson = json.loads(buf_get.decode()[:-5], object_pairs_hook=dict)
                 if 'to' in dictjson:
                     user = dictjson['to']
                     if user in ClientThread.user:
-                        sock = ClientThread.user[user]
-                        print('!!!!!!!!!!!!!!!1',sock)
-                        print(buf)
-                        name, messag = self.json_name_mes(buf.decode())
+                        sock_send = ClientThread.user[user]
+                        #print('!!!!!!!!!!!!!!!1',sock_send)
+                        #print(buf)
+                        name, messag = self.json_name_mes(buf_get.decode())
                         St = '{"name":"'+name+'","message":"' + mes + '"}<end>'
                         StJson = St.replace("'", '"')
-                        print(St)
-                        sock.send(St.encode())
+                        #print(St)
+                        sock_send.send(St.encode())
 
                 else:
-                    for addr, sock in ClientThread.sockets.items():
-                        if addr != self.addr and sock != self.conn:
-                            print(buf)
-                            sock.send(buf)
+                    for addr, sock_send in ClientThread.sockets.items():
+                        if addr != self.addr and sock.send != self.conn_send:
+                            #print(buf_get)
+                            #print('send=', sock_send)
+                            sock_send.send(buf_get)
 
     def json_name_mes(self, jsonSt):
         dictjson = json.loads(jsonSt[:-5], object_pairs_hook=dict)
@@ -83,8 +90,8 @@ class ClientThread(threading.Thread):
             else:
                 self.user = name
                 ClientThread.LIST_NAME_USER.append(self.user)
-                ClientThread.sockets[self.addr] = self.conn
-                ClientThread.user[self.user] = self.conn
+                ClientThread.sockets[self.addr] = self.conn_send
+                ClientThread.user[self.user] = self.conn_send
                 self.REGIS = True
                 return 'Welcome to chat, ' + name
         elif name == '':
@@ -98,14 +105,16 @@ class ClientThread(threading.Thread):
 
 while True:
     if running:
-        conn, addr = sock.accept()
+        conn_get, addr = sock.accept()
+        conn_send, addr = sock.accept()
 
-        print("client connected with address " + addr[0] + str(conn))
-        t = ClientThread(conn, addr)
+        print("client Get " + addr[0] + str(conn_get))
+        print("client Send " + addr[0] + str(conn_send))
+        t = ClientThread(conn_get, conn_send, addr)
         t.start()
         #print(LIST_THREDS)
     else:
         break
 
-conn.close()
-sock.close
+#conn.close()
+#sock.close
