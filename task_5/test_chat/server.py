@@ -103,6 +103,7 @@ class ClientThread(threading.Thread):
         StJson = St.replace("'", '"')
         return StJson
 
+
 while True:
     if running:
         conn_get, addr = sock.accept()
