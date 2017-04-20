@@ -4,6 +4,7 @@ import async_timeout
 from lxml import etree
 import re
 import itertools
+import SQL_BD
 
 list_res = {}
 
@@ -12,27 +13,27 @@ async def fetch(session, url):
         async with session.get(url) as response:
             return await response.text()
 
-async def get_url_title(list_url):
+
+async def get_url_title(session, list_url):
     list_title = []  # список назв усіх сторінок усіх тем
     list_url_title = [] #список urls усіх сторінок усіх тем
     list_author = []  # список авторів усіх сторінок усіх тем
-    session1 = aiohttp.ClientSession()
     for url in list_url:
-        response = await fetch(session1, url)
+        response = await fetch(session, url)
         tree = etree.HTML(response)
         title =tree.xpath("//a[@class='topictitle']/text()")
         href = tree.xpath("//a[@class='topictitle']/@href")
-        #topic = tree.xpath("//a[@class='topictitle']")
         author= tree.xpath("//dd/a[@class='username']/text() | //dd/a[@class='username-coloured']/text()")
         list_title.append(title)
         list_url_title.append(href)
         list_author.append(author)
-    session1.close()
+
     list_title_return = list(itertools.chain.from_iterable(list_title))
     list_url_title_return = list(itertools.chain.from_iterable(list_url_title))
     list_url_title_return_res = ['http://forum.overclockers.ua'+res[1:] for res in list_url_title_return] #список url з насвою сайта (пвона адреса)
     list_author_return = list(itertools.chain.from_iterable(list_author))
     return {'list_title':list_title_return, 'list_url_title':list_url_title_return_res, 'list_author':list_author_return}
+
 
 async def get_text_title(session, title, url, author):
     response = await session.get(url)
@@ -43,13 +44,22 @@ async def get_text_title(session, title, url, author):
     list_text = tree.xpath("//div[@class='notice']/preceding::div[@class='content']/descendant-or-self::text()")
     text = ' '.join(list_text)
     price, currency = price_currency(text)
-    return await write_file_json(title, url, author,text, price, currency)
+    #return await write_file_json(title, url, author,text, price, currency)
+
+    if price != None:
+        price = int(price)
+    return await write_database(title, url, author,text, price, currency)
     #return text
+
+async def write_database(title, url, author, text, price, currency):
+    SQL_BD.insertBD(title, url, author, text, price, currency)
+    #SQL_BD.create_table()
 
 async def write_file_json(title, url, author, text, price, currency):
     dic = {'title': title, 'url': url, 'author': author, 'text': text, 'price':price, 'currency':currency}
     with open('text.txt', 'a', encoding='utf-8') as file:
         file.write(str(dic) + '\n')
+
 
 def price_currency(text):
     dic = {'грн': re.compile(r"(\d+)[\s]*грн"), '$': re.compile(r"(\d)+[\s]*\$")}
@@ -71,15 +81,15 @@ def price_currency(text):
         currency_res = None
     return price_res, currency_res
 
+
 async def main(loop):
     async with aiohttp.ClientSession(loop=loop) as session:
-        list_url_text_title = get_url_title(get_url_page(2))
+        list_url_text_title = get_url_title(session ,get_url_page(3))
         list_url = await list_url_text_title
         tasks = [asyncio.Task(get_text_title(session, title, url, author)) for title, url, author in
                  zip(list_url['list_title'], list_url['list_url_title'], list_url['list_author'])]
         await asyncio.gather(*tasks)
-        #for title, url, author in zip(list_url['list_title'], list_url['list_url_title'], list_url['list_author']):
-            #await get_text_title(session, title, url, author)
+
 
 def get_url_page(count=1):
     """
@@ -96,6 +106,7 @@ def get_url_page(count=1):
 event_loop = asyncio.get_event_loop()
 try:
     event_loop.run_until_complete(main(event_loop))
+    SQL_BD.close()
 finally:
     event_loop.close()
 
