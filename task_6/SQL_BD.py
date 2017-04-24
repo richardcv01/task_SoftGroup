@@ -1,6 +1,6 @@
 import psycopg2
 
-psw = '9907black'# Пароль до БД
+psw = 'user1'# Пароль до БД
 connect = psycopg2.connect(user='postgres', host='localhost', password=psw)
 cursor = connect.cursor()
 
