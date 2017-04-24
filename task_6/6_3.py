@@ -1,6 +1,5 @@
 import aiohttp
 import asyncio
-import async_timeout
 from lxml import etree
 import re
 import itertools
@@ -9,9 +8,8 @@ import SQL_BD
 list_res = {}
 
 async def fetch(session, url):
-    with async_timeout.timeout(10):
-        async with session.get(url) as response:
-            return await response.text()
+    async with session.get(url, timeout=10) as response:
+        return await response.text()
 
 
 async def get_url_title(session, list_url):
@@ -21,11 +19,20 @@ async def get_url_title(session, list_url):
     for url in list_url:
         response = await fetch(session, url)
         tree = etree.HTML(response)
-        title =tree.xpath("//a[@class='topictitle']/text()")
-        href = tree.xpath("//a[@class='topictitle']/@href")
-        author= tree.xpath("//dd/a[@class='username']/text() | //dd/a[@class='username-coloured']/text()")
-        list_title.append(title)
-        list_url_title.append(href)
+
+        topic_a_node = tree.xpath("//a[@class='topictitle']")
+
+        buff_title = []
+        buff_href = []
+
+        for element in topic_a_node:
+            buff_title.append(element.text)
+            buff_href.append(element.attrib['href'].split('&sid')[0])
+
+        list_title.append(buff_title)
+        list_url_title.append(buff_href)
+
+        author= tree.xpath("//dd/a[@class='username' or @class='username-coloured']/text()")
         list_author.append(author)
 
     list_title_return = list(itertools.chain.from_iterable(list_title))
@@ -37,11 +44,11 @@ async def get_url_title(session, list_url):
 
 async def get_text_title(session, title, url, author):
     response = await session.get(url)
-    tit = title
     text = await response.text()
     response.close()
     tree = etree.HTML(text)
-    list_text = tree.xpath("//div[@class='notice']/preceding::div[@class='content']/descendant-or-self::text()")
+    list_text_node = tree.xpath("//div[@class='content']")[0]
+    list_text = list_text_node.xpath('./descendant-or-self::text()')
     text = ' '.join(list_text)
     price, currency = price_currency(text)
     #return await write_file_json(title, url, author,text, price, currency)
