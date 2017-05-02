@@ -1,21 +1,28 @@
 {% extends "layout.html" %}
 {% block body %}
+
   {% if session.logged_in %}
-    <form action="{{ url_for('search') }}" method=post class=add-entry>
-      <dl>
-        <dt>Title:
-        <dd><input type=text size=30 name=title>
-        <dt>Text:
-        <dd><textarea name=text rows=5 cols=40></textarea>
-        <dd><input type=submit value=Share>
+     <form action="{{ url_for('show_entries') }}" method=post>
+       <dl>
+         <dt>Search:
+         <dd><input type=text name=text>
+         <dl><input type=submit value=Search>
       </dl>
-    </form>
+     </form>
+     <table border="1" width="100%" cellpadding="5">
+       <tr>
+           <th>Author</th><th>Title</th><th>Price</th>
+       </tr>
+     {% for entry in entries %}
+       <tr>
+         <td>{{ entry[0] }}</td>
+         <td>{{ entry[1] }}</td>
+         <td>{{ entry[2] }} {{ entry[3] }}</td>
+         <td><a href="detail/{{ entry[4] }}">Детально</a>></td>
+        </tr>
+       {% endfor %}
+       </table>
+
   {% endif %}
-  <ul class=entries>
-  {% for entry in entries %}
-    <li><h2>{{ entry.title }}</h2>{{ entry.text|safe }}
-  {% else %}
-    <li><em>Unbelievable.  No entries here so far</em>
-  {% endfor %}
-  </ul>
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
 {% endblock %}

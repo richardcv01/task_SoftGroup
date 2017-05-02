@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <table border="1" width="100%" cellpadding="5">
+      <tr>
+        <th>Author</th><th>title</th><th>urls</th><th>post text</th><th>price</th>
+      </tr>
+  <tr>
+    <td>{{ entries[3] }}</td>
+    <td>{{ entries[1] }}</td>
+    <td><a href="{{ entries[2] }} {{ entries[3] }}">{{ entries[2] }}</a></td>
+    <td>{{ entries[4] }}</td>
+    <td>{{ entries[5] }} {{ entries[6] }}</td>
+
+  </tr>
+  </table>
+  {% endif %}
+
+{% endblock %}
